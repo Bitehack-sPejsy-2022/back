@@ -6,7 +6,7 @@ from pydantic import BaseModel
 
 from mockup_poi import generate_poi
 
-from models import Poi, ListOfPois, ListOfTimedPois, RecommendedTrips
+from models import Poi, ListOfPois, ListOfTimedPois, RecommendedTrips, GeoPoint
 from maps import search_for_cool_objects, user_search
 from path import find_path
 
@@ -23,15 +23,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-class Poi(BaseModel):
-    name: str
-    description: Optional[str] = None
-    address: Optional[str] = None
-    category: str
-    latitude: float
-    longitude: float
-    picture_url: str
 
 class ListOfPoi(BaseModel):
     list_of_poi: List[Poi]
@@ -60,11 +51,11 @@ async def generate_pois(chosen_pois: ListOfPois):
 
     return {'list_of_poi': [poi for poi in pois]}
 
-
+# TODO change epsilon
 @app.post('/search_near_point', response_model=ListOfPois)
-async def search_near_point(lat: float, lon: float):
+async def search_near_point(point: GeoPoint):
 
-    pois: List[Dict[str, Any]] = user_search(lat, lon)
+    pois: List[Dict[str, Any]] = user_search(point.lat, point.lon)
 
     return {'list_of_poi': [poi for poi in pois]}
 

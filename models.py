@@ -30,3 +30,7 @@ class Trip(BaseModel):
 
 class RecommendedTrips():
     trips: List[Trip]
+
+class GeoPoint(BaseModel):
+    lat: float
+    lon: float
