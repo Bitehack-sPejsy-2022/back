@@ -10,7 +10,7 @@ def generate_poi() -> Dict[str, Any]:
     poi['latitude'] = random.uniform(50, 51)
     poi['longitude'] = random.uniform(19, 20)
     poi['open_hour'] = random.randint(6, 10)
-    poi['closehour'] = random.uniform(18, 22)
+    poi['close_hour'] = random.uniform(18, 22)
     poi['picture_url'] = 'google.com'
 
     return poi
