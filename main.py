@@ -5,13 +5,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 from mockup_poi import generate_poi
-<<<<<<< Updated upstream
+
 from models import Poi, ListOfPois, ListOfTimedPois, RecommendedTrips
 from maps import search_for_cool_objects, user_search
-=======
-from models import Poi, ListOfPois, ListOfTimedPois, Trip, RecommendedTrips
-from maps import search_for_cool_objects
->>>>>>> Stashed changes
 from path import find_path
 
 app = FastAPI()
