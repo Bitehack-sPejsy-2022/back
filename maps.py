@@ -14,7 +14,7 @@ def gen_description(obj):
 
 def gen_address(obj):
     r = [obj.tag("addr:postcode"), " ", obj.tag("addr:city"), ", ",
-         obj.tag("addr:street"), " ", obj.tag("addr:housenumber")]
+        obj.tag("addr:street"), " ", obj.tag("addr:housenumber")]
     for i in r:
         if i is None:
             return None

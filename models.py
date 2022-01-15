@@ -23,5 +23,10 @@ class TimedPoi(BaseModel):
 class ListOfTimedPois(BaseModel):
     list_of_poi: List[TimedPoi]
 
-class ProposedTrips():
-    pass
+
+class Trip(BaseModel):
+    list_of_poi: ListOfTimedPois
+    transit_times: List[int]
+
+class RecommendedTrips():
+    trips: List[Trip]
