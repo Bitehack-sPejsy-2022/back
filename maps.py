@@ -4,6 +4,7 @@ from OSMPythonTools.overpass import Overpass
 
 from models import Poi
 
+
 def asdf(txt, x):
     return f"<{x}>" + txt + f"</{x}>"
 
@@ -40,7 +41,7 @@ def gen_description(obj):
 
 def gen_address(obj):
     r = [obj.tag("addr:postcode"), " ", obj.tag("addr:city"), ", ",
-        obj.tag("addr:street"), " ", obj.tag("addr:housenumber")]
+         obj.tag("addr:street"), " ", obj.tag("addr:housenumber")]
     for i in r:
         if i is None:
             return ""
@@ -61,7 +62,7 @@ def get_lat_lon(obj):
 def search_for_cool_objects(city: str) -> List[Dict[str, Any]]:
     # cools found in Krakow: hotel hostel information motel gallery camp_site theme_park apartment zoo attraction guest_house museum
     COOLS = {"information", "gallery", "camp_site",
-                "theme_park", "zoo", "attraction", "museum"}
+             "theme_park", "zoo", "attraction", "museum"}
 
     overpass = Overpass()
     result = overpass.query(f'nwr["addr:city"="{city}"]["tourism"]; out;')
@@ -96,14 +97,15 @@ def search_for_cool_objects(city: str) -> List[Dict[str, Any]]:
     return objects
 
 
-def user_search(x: float, y: float) -> List[Dict[str, Any]]:
+def user_search(lat: float, lon: float) -> List[Dict[str, Any]]:
     # 1° of latitude = always 111.32 km
     eps = 0.001
-    x0, x1 = x - eps, x + eps
-    y0, y1 = y - eps, y + eps
+    lat0, lat1 = lat - eps, lat + eps
+    lon0, lon1 = lon - eps, lon + eps
 
     overpass = Overpass()
-    result = overpass.query(f'nwr["tourism"]({x0},{y0},{x1},{y1}); out;')
+    result = overpass.query(
+        f'nwr["tourism"]({lat0},{lon0},{lat1},{lon1}); out;')
 
     objects = []
     for obj in result.elements():
@@ -114,8 +116,6 @@ def user_search(x: float, y: float) -> List[Dict[str, Any]]:
         latitide, longitude = get_lat_lon(obj)
 
         picture_url = ""
-
-        print((name, address, category, latitide, longitude, picture_url))
 
         if None in (name, address, category, latitide, longitude, picture_url):
             continue
@@ -133,7 +133,8 @@ def user_search(x: float, y: float) -> List[Dict[str, Any]]:
 
         objects.append(poi)
 
-    return objects
+    return sorted(objects, key=lambda obj: (obj['latitude'] - lat)**2 * (obj['longitude'] - lon)**2)
+
 
 if __name__ == "__main__":
     for i in search_for_cool_objects("Kraków"):
