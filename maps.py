@@ -1,16 +1,41 @@
 from typing import List, Dict, Any
-import time
 
 from OSMPythonTools.overpass import Overpass
 
 from models import Poi
 
+def asdf(txt, x):
+    return f"<{x}>" + txt + f"</{x}>"
+
+
+def yesno_to_taknie(x):
+    if x == "yes":
+        return "tak"
+    elif x == "no":
+        return "nie"
+    else:
+        return "b/d"
+
+
 def gen_description(obj):
     txt = ""
-    if not obj.tag("website") is None:
-        txt += "Strona internetowa: " + obj.tag("website")
+    if not (website := obj.tag("website")) is None:
+        txt += asdf(asdf("Witryna internetowa: ",
+                    "strong") + website + "\n", "p")
+    if not (hours := obj.tag("opening_hours")) is None:
+        txt += asdf(asdf("Godziny otwarcia: ", "strong") + hours + "\n", "p")
+    if not (wheelchair := obj.tag("wheelchair")) is None:
+        txt += asdf(asdf("Przystosowanie dla osób niepełnosprawnych: ", "strong") +
+                    yesno_to_taknie(wheelchair) + "\n", "p")
+    if not (fee := obj.tag("fee")) is None:
+        txt += asdf(asdf("Opłaty: ", "strong") +
+                    yesno_to_taknie(fee) + "\n", "p")
+    if not (phone := obj.tag("phone")) is None:
+        txt += asdf(asdf("Telefon: ", "strong") + phone + "\n", "p")
+    if not (address := gen_address(obj)) is None:
+        txt += asdf(asdf("Adres: ", "strong") + address + "\n", "p")
 
-    return ""
+    return txt
 
 
 def gen_address(obj):
@@ -38,10 +63,8 @@ def search_for_cool_objects(city: str) -> List[Dict[str, Any]]:
     COOLS = {"information", "gallery", "camp_site",
                 "theme_park", "zoo", "attraction", "museum"}
 
-    time_start = time.time()
     overpass = Overpass()
     result = overpass.query(f'nwr["addr:city"="{city}"]["tourism"]; out;')
-    print((time.time() - time_start)/1000)
     objects = []
     for obj in result.elements():
         if not obj.tag("tourism") in COOLS:
@@ -50,7 +73,7 @@ def search_for_cool_objects(city: str) -> List[Dict[str, Any]]:
         name = obj.tag("name")
         description = gen_description(obj)
         address = gen_address(obj)
-        category = obj.tag("tourism").capitalize()
+        category = obj.tag("tourism")
         latitide, longitude = get_lat_lon(obj)
         picture_url = ""
 
@@ -61,19 +84,46 @@ def search_for_cool_objects(city: str) -> List[Dict[str, Any]]:
         poi['name'] = name
         poi['description'] = description
         poi['address'] = address
-        poi['category'] = category
+        poi['category'] = category.capitalize()
         poi['latitude'] = latitide
         poi['longitude'] = longitude
         poi['open_hour'] = 7
         poi['close_hour'] = 20
         poi['picture_url'] = picture_url
 
-        print(time.time() - time_start)
         objects.append(poi)
 
     return objects
 
 
+def user_search(x: float, y: float) -> str:
+    # 1° of latitude = always 111.32 km
+    eps = 0.0005
+    x0, x1 = x - eps, x + eps
+    y0, y1 = y - eps, y + eps
+
+    overpass = Overpass()
+    result = overpass.query(f'nwr["tourism"]({x0},{y0},{x1},{y1}); out;')
+
+    s = set({})
+    for obj in result.elements():
+        name = obj.tag("name")
+        description = gen_description(obj)
+        address = gen_address(obj)
+        category = obj.tag("tourism")
+        latitide, longitude = get_lat_lon(obj)
+
+        picture_url = ""
+
+        if None in (name, address, category, latitide, longitude, picture_url):
+            continue
+        s.add((name, description, address, category.capitalize(),
+              latitide, longitude, picture_url))
+    return s
+
 if __name__ == "__main__":
     for i in search_for_cool_objects("Kraków"):
-        print(i)
+        for j in i.items():
+            print(j)
+    print("--------------- TEST ---------------")
+    print(user_search(50.0641425, 19.9231397))
