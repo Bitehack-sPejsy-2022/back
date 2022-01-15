@@ -43,7 +43,7 @@ def gen_address(obj):
         obj.tag("addr:street"), " ", obj.tag("addr:housenumber")]
     for i in r:
         if i is None:
-            return None
+            return ""
     return "".join(r)
 
 
@@ -115,6 +115,8 @@ def user_search(x: float, y: float) -> List[Dict[str, Any]]:
 
         picture_url = ""
 
+        print((name, address, category, latitide, longitude, picture_url))
+
         if None in (name, address, category, latitide, longitude, picture_url):
             continue
 
@@ -138,4 +140,4 @@ if __name__ == "__main__":
         for j in i.items():
             print(j)
     print("--------------- TEST ---------------")
-    print(user_search(50.0641425, 19.9231397))
+    print(user_search(50.06443278632467, 19.94349002838135))
