@@ -6,7 +6,7 @@ from pydantic import BaseModel
 
 from mockup_poi import generate_poi
 from models import Poi, ListOfPois, ListOfTimedPois, RecommendedTrips
-from maps import search_for_cool_objects
+from maps import search_for_cool_objects, user_search
 from path import find_path
 
 app = FastAPI()
@@ -56,6 +56,13 @@ async def generate_pois(chosen_pois: ListOfPois):
     # TODO query pois nearby already chosen pois
 
     pois: List[Dict[str, Any]] = [generate_poi() for _ in range(3)]
+
+    return {'list_of_poi': [poi for poi in pois]}
+
+@app.post('/search_near_point', response_model=ListOfPois)
+async def search_near_point(lat: float, lon: float):
+
+    pois: List[Dict[str, Any]] = user_search(lat, lon)
 
     return {'list_of_poi': [poi for poi in pois]}
 

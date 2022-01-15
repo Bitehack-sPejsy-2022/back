@@ -96,7 +96,7 @@ def search_for_cool_objects(city: str) -> List[Dict[str, Any]]:
     return objects
 
 
-def user_search(x: float, y: float) -> str:
+def user_search(x: float, y: float) -> List[Dict[str, Any]]:
     # 1° of latitude = always 111.32 km
     eps = 0.0005
     x0, x1 = x - eps, x + eps
@@ -105,7 +105,7 @@ def user_search(x: float, y: float) -> str:
     overpass = Overpass()
     result = overpass.query(f'nwr["tourism"]({x0},{y0},{x1},{y1}); out;')
 
-    s = set({})
+    objects = []
     for obj in result.elements():
         name = obj.tag("name")
         description = gen_description(obj)
@@ -117,9 +117,21 @@ def user_search(x: float, y: float) -> str:
 
         if None in (name, address, category, latitide, longitude, picture_url):
             continue
-        s.add((name, description, address, category.capitalize(),
-              latitide, longitude, picture_url))
-    return s
+
+        poi: Dict[str, Any] = {}
+        poi['name'] = name
+        poi['description'] = description
+        poi['address'] = address
+        poi['category'] = category.capitalize()
+        poi['latitude'] = latitide
+        poi['longitude'] = longitude
+        poi['open_hour'] = 7
+        poi['close_hour'] = 20
+        poi['picture_url'] = picture_url
+
+        objects.append(poi)
+
+    return objects
 
 if __name__ == "__main__":
     for i in search_for_cool_objects("Kraków"):
