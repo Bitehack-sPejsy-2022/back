@@ -9,6 +9,8 @@ class Poi(BaseModel):
     category: str
     latitude: float
     longitude: float
+    open_hour: int
+    close_hour: int
     picture_url: str
 
 class ListOfPois(BaseModel):
