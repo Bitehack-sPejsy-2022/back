@@ -5,7 +5,6 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 from mockup_poi import generate_poi
-
 from models import (
     Poi,
     ListOfPois,
@@ -17,6 +16,7 @@ from models import (
 from maps import search_for_cool_objects, user_search
 from path import find_path
 from matrix import get_matrix
+from routing import find_route
 
 app = FastAPI()
 
