@@ -43,10 +43,11 @@ async def root():
 
 @app.get('/poi/city/{city}', response_model=ListOfPois)
 async def poi_city(city: str):
-    pois: List[Dict[str, Any]] = search_for_cool_objects(city)
-
     if city == 'chuj':
         pois: List[Dict[str, Any]] = [generate_poi() for _ in range(3)]
+    else:
+        pois: List[Dict[str, Any]] = search_for_cool_objects(city)
+
 
     return {'list_of_poi': [poi for poi in pois]}
 
