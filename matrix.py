@@ -7,7 +7,7 @@ client = openrouteservice.Client(key='5b3ce3597851110001cf62485da6d011d1ca48179d
 
 def get_matrix(latlons: List[Tuple[float, float]]):
     global client
-    output = distance_matrix(client, tuple(latlons), profile = "foot-walking")
+    output = distance_matrix(client, tuple(latlons), profile='foot-walking')
 
     # Z sekund na godziny
     matrix = output['durations']
@@ -20,6 +20,7 @@ def get_matrix(latlons: List[Tuple[float, float]]):
     # Uwaga!
 
 if __name__ == '__main__':
-    test_data = [(9.70093,48.477473),
-        (9.207916,49.153868)]
+    test_data = [(19.927975, 50.056150),
+        (19.903234, 50.068007),
+        (19.945146, 50.069448)]
     print(get_matrix(test_data))
