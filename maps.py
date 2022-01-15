@@ -56,7 +56,7 @@ def search_for_cool_objects(city):
     return s
 
 
-def user_search(x: float, y: float, query: str) -> str:
+def user_search(x: float, y: float) -> str:
     # 1° of latitude = always 111.32 km
     eps = 0.0005
     x0, x1 = x - eps, x + eps
