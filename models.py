@@ -10,6 +10,9 @@ class Poi(BaseModel):
     latitude: float
     longitude: float
     picture_url: str
-
-class ListOfPoi(BaseModel):
+class ListOfPois(BaseModel):
     list_of_poi: List[Poi]
+
+class TimedPoi(BaseModel):
+    poi: Poi
+    time: float
