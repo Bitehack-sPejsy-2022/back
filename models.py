@@ -9,6 +9,8 @@ class Poi(BaseModel):
     category: str
     latitude: float
     longitude: float
+    open_hour: int
+    close_hour: int
     picture_url: str
 
 class ListOfPois(BaseModel):
@@ -16,10 +18,25 @@ class ListOfPois(BaseModel):
 
 class TimedPoi(BaseModel):
     poi: Poi
-    time: float
+    time_spent: float
 
 class ListOfTimedPois(BaseModel):
     list_of_poi: List[TimedPoi]
 
-class ProposedTrips():
-    pass
+
+class Trip(BaseModel):
+    list_of_poi: ListOfTimedPois
+    transit_times: List[float]
+
+class RecommendedTrips(BaseModel):
+    trips: List[Trip]
+
+class GeoPoint(BaseModel):
+    lat: float
+    lng: float
+
+class PlanTripRequest(BaseModel):
+    chosen_pois: ListOfTimedPois
+    start_time: str
+    end_time: str
+    number_of_trips: int
