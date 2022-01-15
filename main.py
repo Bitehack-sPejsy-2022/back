@@ -113,7 +113,7 @@ async def plan_trip(plan_trip_request: PlanTripRequest):
         
         route = [GeoPoint(lat=point[0], lng=point[1]) for point in temp_route]
 
-        trip = Trip(list_of_poi=list_of_poi, transit_times=transit_times, route=route)
+        trip = Trip(list_of_poi=list_of_poi, transit_times=transit_times, route=route, starting_time=starting_time)
         trips.append(trip)
 
     recommended_trips = RecommendedTrips(trips=trips)

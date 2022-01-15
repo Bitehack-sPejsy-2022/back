@@ -30,6 +30,7 @@ class GeoPoint(BaseModel):
 class Trip(BaseModel):
     list_of_poi: ListOfTimedPois
     transit_times: List[float]
+    starting_time: List[float]
     route: List[GeoPoint]
 
 class RecommendedTrips(BaseModel):
