@@ -33,4 +33,4 @@ class RecommendedTrips():
 
 class GeoPoint(BaseModel):
     lat: float
-    lon: float
+    lng: float

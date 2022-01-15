@@ -55,11 +55,10 @@ async def generate_pois(chosen_pois: ListOfPois):
 @app.post('/search_near_point', response_model=ListOfPois)
 async def search_near_point(point: GeoPoint):
 
-    pois: List[Dict[str, Any]] = user_search(point.lat, point.lon)
-
+    pois: List[Dict[str, Any]] = user_search(point.lat, point.lng)
     return {'list_of_poi': [poi for poi in pois]}
 
-@app.post('/plan_trip', response_model=RecommendedTrips)
+# @app.post('/plan_trip', response_model=RecommendedTrips)
 async def plan_trip(chosen_pois: ListOfTimedPois, start_time: str, end_time: str, number_of_trips: int):
     # decode time strings
     temp: str = start_time[(start_time.find('T') + 1) : start_time.find('Z') ]
