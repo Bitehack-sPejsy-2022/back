@@ -18,7 +18,7 @@ class ListOfPois(BaseModel):
 
 class TimedPoi(BaseModel):
     poi: Poi
-    time: float
+    time_spent: float
 
 class ListOfTimedPois(BaseModel):
     list_of_poi: List[TimedPoi]
