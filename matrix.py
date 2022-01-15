@@ -5,7 +5,7 @@ client = openrouteservice.Client(key='5b3ce3597851110001cf62485da6d011d1ca48179d
 
 def get_matrix(latlons):
     global client
-    output = distance_matrix(client, latlons)
+    output = distance_matrix(client, latlons, profile = "foot-walking")
 
     # Z sekund na godziny
     matrix = output['durations']
