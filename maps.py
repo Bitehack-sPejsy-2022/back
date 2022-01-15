@@ -45,13 +45,39 @@ def search_for_cool_objects(city):
         name = obj.tag("name")
         description = gen_description(obj)
         address = gen_address(obj)
-        category = obj.tag("tourism").capitalize()
+        category = obj.tag("tourism")
         latitide, longitude = get_lat_lon(obj)
         picture_url = ""
 
         if None in (name, address, category, latitide, longitude, picture_url):
             continue
-        s.add((name, description, address, category,
+        s.add((name, description, address, category.capitalize(),
+              latitide, longitude, picture_url))
+    return s
+
+
+def user_search(x: float, y: float, query: str) -> str:
+    # 1° of latitude = always 111.32 km
+    eps = 0.0005
+    x0, x1 = x - eps, x + eps
+    y0, y1 = y - eps, y + eps
+
+    overpass = Overpass()
+    result = overpass.query(f'nwr["tourism"]({x0},{y0},{x1},{y1}); out;')
+
+    s = set({})
+    for obj in result.elements():
+        name = obj.tag("name")
+        description = gen_description(obj)
+        address = gen_address(obj)
+        category = obj.tag("tourism")
+        latitide, longitude = get_lat_lon(obj)
+
+        picture_url = ""
+
+        if None in (name, address, category, latitide, longitude, picture_url):
+            continue
+        s.add((name, description, address, category.capitalize(),
               latitide, longitude, picture_url))
     return s
 
@@ -59,3 +85,5 @@ def search_for_cool_objects(city):
 if __name__ == "__main__":
     for i in search_for_cool_objects("Kraków"):
         print(i)
+    print("--------------- TEST ---------------")
+    print(user_search(50.0641425, 19.9231397))
