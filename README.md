@@ -24,10 +24,6 @@ uvicorn main:app --reload
 
 "/poi/city/\<city\>" - points of interest in \<city\>
 
-"/poi/country/\<country\>" - points of interest in \<country\>
-
-"/poi/region/\<region\>" - points of interest in \<region\>
-
 ### POST:
 
 "/generate_pois" - it requires JSON in form of ListOfPois (look at models.py) and returns list of pois generated nearby ones that were already selected
