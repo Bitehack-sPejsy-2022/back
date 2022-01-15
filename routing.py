@@ -12,7 +12,9 @@ def find_route_single(start : Tuple[float, float], end : Tuple[float, float]) ->
 
     if status == 'success':
         return list(map(ROUTER.nodeLatLon, route))
-    else: print("Adios :(")
+    else: 
+        print("Adios :(")
+        return []
 
 def find_route(points: List[Tuple[float, float]]) -> List[Tuple[float, float]]:
     path = []
