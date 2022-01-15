@@ -98,7 +98,7 @@ def search_for_cool_objects(city: str) -> List[Dict[str, Any]]:
 
 def user_search(x: float, y: float) -> List[Dict[str, Any]]:
     # 1° of latitude = always 111.32 km
-    eps = 0.0005
+    eps = 0.001
     x0, x1 = x - eps, x + eps
     y0, y1 = y - eps, y + eps
 
