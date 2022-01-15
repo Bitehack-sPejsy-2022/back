@@ -1,18 +1,25 @@
+from typing import List, Tuple
+
 import openrouteservice
 from openrouteservice.distance_matrix import distance_matrix
 
 client = openrouteservice.Client(key='5b3ce3597851110001cf62485da6d011d1ca48179dbe061a80ee1fa6')
 
-def get_matrix(latlons):
+def get_matrix(latlons: List[Tuple[float, float]]):
     global client
-    output = distance_matrix(client, latlons, profile = "foot-walking")
+    output = distance_matrix(client, tuple(latlons), profile = "foot-walking")
 
     # Z sekund na godziny
     matrix = output['durations']
-    for i in len(matrix):
-        for j in len(matrix):
+    for i in range(len(matrix)):
+        for j in range(len(matrix)):
             matrix[i][j] /= 3600
 
     return matrix
 
     # Uwaga!
+
+if __name__ == '__main__':
+    test_data = [(9.70093,48.477473),
+        (9.207916,49.153868)]
+    print(get_matrix(test_data))
