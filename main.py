@@ -6,16 +6,17 @@ from pydantic import BaseModel
 
 from mockup_poi import generate_poi
 from models import Poi, ListOfPois
+from maps import search_for_cool_objects
 
 app = FastAPI()
 
-origins = [
+allow_origins = [
     "http://localhost:3000",
 ]
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=allow_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -43,7 +44,8 @@ async def root():
 async def poi_city(city: str):
     # TODO query 3rd party API for poi
     # for now generate random pois
-    pois: List[Dict[str, Any]] = [generate_poi() for _ in range(3)]
+    pois: List[Dict[str, Any]] = search_for_cool_objects(city)
+    # pois: List[Dict[str, Any]] = [generate_poi() for _ in range(3)]
 
     return {'list_of_poi': [poi for poi in pois]}
 

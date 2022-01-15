@@ -1,5 +1,8 @@
+from typing import List, Dict, Any
+
 from OSMPythonTools.overpass import Overpass
 
+from models import Poi
 
 def gen_description(obj):
     txt = ""
@@ -29,15 +32,15 @@ def get_lat_lon(obj):
         return None, None
 
 
-def search_for_cool_objects(city):
+def search_for_cool_objects(city: str) -> List[Dict[str, Any]]:
     # cools found in Krakow: hotel hostel information motel gallery camp_site theme_park apartment zoo attraction guest_house museum
     COOLS = {"information", "gallery", "camp_site",
-             "theme_park", "zoo", "attraction", "museum"}
+                "theme_park", "zoo", "attraction", "museum"}
 
     overpass = Overpass()
     result = overpass.query(f'nwr["addr:city"="{city}"]["tourism"]; out;')
 
-    s = set({})
+    objects = []
     for obj in result.elements():
         if not obj.tag("tourism") in COOLS:
             continue
@@ -51,9 +54,21 @@ def search_for_cool_objects(city):
 
         if None in (name, address, category, latitide, longitude, picture_url):
             continue
-        s.add((name, description, address, category,
-              latitide, longitude, picture_url))
-    return s
+
+        poi: Dict[str, Any] = {}
+        poi['name'] = name
+        poi['description'] = description
+        poi['address'] = address
+        poi['category'] = category
+        poi['latitude'] = latitide
+        poi['longitude'] = longitude
+        poi['open_hour'] = 7
+        poi['close_hour'] = 20
+        poi['picture_url'] = picture_url
+
+        objects.append(poi)
+
+    return objects
 
 
 if __name__ == "__main__":
