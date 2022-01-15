@@ -10,6 +10,7 @@ class Poi(BaseModel):
     latitude: float
     longitude: float
     picture_url: str
+
 class ListOfPois(BaseModel):
     list_of_poi: List[Poi]
 
@@ -19,3 +20,6 @@ class TimedPoi(BaseModel):
 
 class ListOfTimedPois(BaseModel):
     list_of_poi: List[TimedPoi]
+
+class ProposedTrips():
+    pass
