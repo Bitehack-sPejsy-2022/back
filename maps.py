@@ -1,12 +1,38 @@
 from OSMPythonTools.overpass import Overpass
 
 
+def asdf(txt, x):
+    return f"<{x}>" + txt + f"</{x}>"
+
+
+def yesno_to_taknie(x):
+    if x == "yes":
+        return "tak"
+    elif x == "no":
+        return "nie"
+    else:
+        return "b/d"
+
+
 def gen_description(obj):
     txt = ""
-    if not obj.tag("website") is None:
-        txt += "Strona internetowa: " + obj.tag("website")
+    if not (website := obj.tag("website")) is None:
+        txt += asdf(asdf("Witryna internetowa: ",
+                    "strong") + website + "\n", "p")
+    if not (hours := obj.tag("opening_hours")) is None:
+        txt += asdf(asdf("Godziny otwarcia: ", "strong") + hours + "\n", "p")
+    if not (wheelchair := obj.tag("wheelchair")) is None:
+        txt += asdf(asdf("Przystosowanie dla osób niepełnosprawnych: ", "strong") +
+                    yesno_to_taknie(wheelchair) + "\n", "p")
+    if not (fee := obj.tag("fee")) is None:
+        txt += asdf(asdf("Opłaty: ", "strong") +
+                    yesno_to_taknie(fee) + "\n", "p")
+    if not (phone := obj.tag("phone")) is None:
+        txt += asdf(asdf("Telefon: ", "strong") + phone + "\n", "p")
+    if not (address := gen_address(obj)) is None:
+        txt += asdf(asdf("Adres: ", "strong") + address + "\n", "p")
 
-    return ""
+    return txt
 
 
 def gen_address(obj):
@@ -84,6 +110,7 @@ def user_search(x: float, y: float) -> str:
 
 if __name__ == "__main__":
     for i in search_for_cool_objects("Kraków"):
-        print(i)
+        for j in i:
+            print(j)
     print("--------------- TEST ---------------")
     print(user_search(50.0641425, 19.9231397))
