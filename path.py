@@ -59,7 +59,8 @@ def find_path(start_hour, end_hour, time, hours, matrix, start_point = None):
         return []
     return best
 
-for _ in range(5):
-    print(find_path(6, 20, time, hours, matrix))
+if __name__ == '__main__':
+    for _ in range(5):
+        print(find_path(6, 20, time, hours, matrix))
 
 

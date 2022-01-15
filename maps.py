@@ -1,4 +1,5 @@
 from typing import List, Dict, Any
+import time
 
 from OSMPythonTools.overpass import Overpass
 
@@ -37,9 +38,10 @@ def search_for_cool_objects(city: str) -> List[Dict[str, Any]]:
     COOLS = {"information", "gallery", "camp_site",
                 "theme_park", "zoo", "attraction", "museum"}
 
+    time_start = time.time()
     overpass = Overpass()
     result = overpass.query(f'nwr["addr:city"="{city}"]["tourism"]; out;')
-
+    print((time.time() - time_start)/1000)
     objects = []
     for obj in result.elements():
         if not obj.tag("tourism") in COOLS:
@@ -66,6 +68,7 @@ def search_for_cool_objects(city: str) -> List[Dict[str, Any]]:
         poi['close_hour'] = 20
         poi['picture_url'] = picture_url
 
+        print(time.time() - time_start)
         objects.append(poi)
 
     return objects
