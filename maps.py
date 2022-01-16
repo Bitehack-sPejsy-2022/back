@@ -60,13 +60,13 @@ def get_lat_lon(obj):
         return None, None
 
 
-def search_for_cool_objects(city: str) -> List[Poi]:
+def search_for_cool_objects(city: str, attrs: str = '["tourism"]') -> List[Poi]:
     # cools found in Krakow: hotel hostel information motel gallery camp_site theme_park apartment zoo attraction guest_house museum
     COOLS = {"information", "gallery", "camp_site",
              "theme_park", "zoo", "attraction", "museum"}
 
     overpass = Overpass()
-    result = overpass.query(f'nwr["addr:city"="{city}"]["tourism"]; out;')
+    result = overpass.query(f'nwr["addr:city"="{city}"]{attrs}; out;')
     objects = []
     for obj in result.elements():
         if not obj.tag("tourism") in COOLS:
@@ -75,7 +75,7 @@ def search_for_cool_objects(city: str) -> List[Poi]:
         name = obj.tag("name")
         description = gen_description(obj)
         address = gen_address(obj)
-        category = obj.tag("tourism")
+        category = x if (x := obj.tag("tourism")) else ""
         latitude, longitude = get_lat_lon(obj)
         picture_url = get_photos_from_bing(city, name)
 
@@ -100,7 +100,7 @@ def search_for_cool_objects(city: str) -> List[Poi]:
 
 
 def user_search(lat: float, lon: float, city: str) -> List[Poi]:
-    cool_objs: List[Poi] = search_for_cool_objects(city)
+    cool_objs: List[Poi] = search_for_cool_objects(city, "")
 
     cool_objs.sort(key=lambda obj: (obj.latitude - lat)
                    ** 2 + (obj.longitude - lon)**2)
