@@ -3,6 +3,8 @@ from typing import List, Dict, Any
 from OSMPythonTools.overpass import Overpass
 
 from models import Poi
+from google_downloader import get_photos_from_bing
+
 
 
 def asdf(txt, x):
@@ -76,7 +78,8 @@ def search_for_cool_objects(city: str) -> List[Dict[str, Any]]:
         address = gen_address(obj)
         category = obj.tag("tourism")
         latitide, longitude = get_lat_lon(obj)
-        picture_url = ''
+        picture_url = get_photos_from_bing(city, name)
+
 
         if None in (name, address, category, latitide, longitude, picture_url):
             continue
@@ -90,7 +93,7 @@ def search_for_cool_objects(city: str) -> List[Dict[str, Any]]:
         poi['longitude'] = longitude
         poi['open_hour'] = 7
         poi['close_hour'] = 20
-        poi['picture_url'] = picture_url if picture_url else ""
+        poi['picture_url'] = picture_url
         objects.append(poi)
 
     return objects
