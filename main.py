@@ -59,7 +59,6 @@ async def generate_pois(chosen_pois: ListOfPois):
 
     return {'list_of_poi': [poi for poi in pois]}
 
-# TODO change epsilon
 @app.post('/search_near_point', response_model=ListOfPois)
 async def search_near_point(point: GeoPoint):
 
@@ -96,7 +95,8 @@ async def plan_trip(plan_trip_request: PlanTripRequest):
     for _ in range(number_of_trips):
         path: List[int]
         starting_time: List[float]
-        path, starting_time = find_path(start_hour, end_hour, time_spent_in_pois, opening_hours, transition_time_matrix) # TODO typing in path.py
+        # TODO give deep copies
+        path, starting_time = find_path(start_hour, end_hour, time_spent_in_pois, opening_hours, transition_time_matrix)
 
         temp_list_of_poi = [chosen_pois.list_of_poi[index] for index in path]
         list_of_poi = ListOfTimedPois(list_of_poi=temp_list_of_poi)
@@ -112,8 +112,12 @@ async def plan_trip(plan_trip_request: PlanTripRequest):
                                         (chosen_pois.list_of_poi[i+1].poi.latitude, chosen_pois.list_of_poi[i+1].poi.longitude)) 
         
         route = [GeoPoint(lat=point[0], lng=point[1]) for idx,point in enumerate(temp_route) if idx % 10 == 0]
+        bounds = (
+                (min([route_point.lat for route_point in route]), min([route_point.lng for route_point in route])),
+                (max([route_point.lat for route_point in route]), max([route_point.lng for route_point in route])),
+        )
 
-        trip = Trip(list_of_poi=list_of_poi, transit_times=transit_times, route=route, starting_time=starting_time)
+        trip = Trip(list_of_poi=list_of_poi, transit_times=transit_times, route=route, starting_time=starting_time, bounds=bounds)
         trips.append(trip)
 
     recommended_trips = RecommendedTrips(trips=trips)

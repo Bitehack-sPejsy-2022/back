@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import List, Optional, Tuple
 
 from pydantic import BaseModel
 
@@ -32,6 +32,7 @@ class Trip(BaseModel):
     transit_times: List[float]
     starting_time: List[float]
     route: List[GeoPoint]
+    bounds: Tuple[Tuple[float, float], Tuple[float, float]]
 
 class RecommendedTrips(BaseModel):
     trips: List[Trip]

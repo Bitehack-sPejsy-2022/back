@@ -10,10 +10,10 @@ Fabryka Emalia Oskara Schindlera,02/01/2022,FALSE,15:00 PM,16:00 PM
 Muzeum Sztuki i Techniki Japońskiej Manggha,02/01/2022,FALSE,17:00 PM,18:00 PM
 """
 
-from typing import Iterable
+from typing import List
 
 
-def gen_calendar_csv(city: str, day_start: str, events: Iterable[str]) -> str:
+def gen_calendar_csv(city: str, day_start: str, events: List[List[str, str, str, str]]) -> str:
     txt = "Subject, Start Date, All Day Event, Start Time, End Time, Location, Description\n"
     txt += f"{city} - Wycieczka, {day_start}, TRUE, , , {city}, {city} - Wycieczka\n"
     for event in events:
