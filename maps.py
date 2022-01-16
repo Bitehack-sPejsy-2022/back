@@ -1,9 +1,9 @@
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Tuple
 
 from OSMPythonTools.overpass import Overpass
 
-from models import Poi
 from google_downloader import get_photos_from_bing
+from models import GeoPoint, Poi
 
 
 def asdf(txt, x):
@@ -60,7 +60,7 @@ def get_lat_lon(obj):
         return None, None
 
 
-def search_for_cool_objects(city: str) -> List[Dict[str, Any]]:
+def search_for_cool_objects(city: str) -> List[Poi]:
     # cools found in Krakow: hotel hostel information motel gallery camp_site theme_park apartment zoo attraction guest_house museum
     COOLS = {"information", "gallery", "camp_site",
              "theme_park", "zoo", "attraction", "museum"}
@@ -76,34 +76,33 @@ def search_for_cool_objects(city: str) -> List[Dict[str, Any]]:
         description = gen_description(obj)
         address = gen_address(obj)
         category = obj.tag("tourism")
-        latitide, longitude = get_lat_lon(obj)
+        latitude, longitude = get_lat_lon(obj)
         picture_url = get_photos_from_bing(city, name)
 
-        if None in (name, address, category, latitide, longitude, picture_url):
+        if None in (name, address, category, latitude, longitude, picture_url):
             continue
 
-        poi: Dict[str, Any] = {}
-        poi['name'] = name
-        poi['description'] = description
-        poi['address'] = address
-        poi['category'] = category.capitalize()
-        poi['latitude'] = latitide
-        poi['longitude'] = longitude
-        poi['open_hour'] = 7
-        poi['close_hour'] = 20
-        poi['picture_url'] = picture_url
+        poi = Poi(
+            name=name,
+            description=description,
+            address=address,
+            category=category.capitalize(),
+            latitude=latitude,
+            longitude=longitude,
+            open_hour=7,
+            close_hour=20,
+            picture_url=picture_url
+        )
+
         objects.append(poi)
 
     return objects
 
 
-def user_search(lat: float, lon: float, city: str) -> List[Dict[str, Any]]:
+def user_search(lat: float, lon: float, eps: float = 0.0001) -> List[Dict[str, Any]]:
     # 1° of latitude = always 111.32 km
-    eps = 0.0001
     lat0, lat1 = lat - eps, lat + eps
     lon0, lon1 = lon - eps, lon + eps
-
-    cools = search_for_cool_objects(city)
 
     overpass = Overpass()
     result = overpass.query(
@@ -138,20 +137,21 @@ def user_search(lat: float, lon: float, city: str) -> List[Dict[str, Any]]:
     return sorted(objects, key=lambda obj: (obj['latitude'] - lat)**2 * (obj['longitude'] - lon)**2)
 
 
-def polygon_searchh(polygon: List[List[float]]):
+def polygon_search(polygon: List[GeoPoint]):
     if len(polygon):
         return []
 
-    x0, x1, y0, y1 = polygon[0][0], polygon[0][0], polygon[0][1], polygon[0][1],
+    lat0, lat1, lng0, lng1 = polygon[0].lat, polygon[0].lat, polygon[0].lng, polygon[0].lng,
+    point: GeoPoint
     for point in polygon[1:]:
-        x0 = min(point[0], x0)
-        x1 = max(point[0], x1)
-        y0 = min(point[1], y0)
-        y1 = max(point[1], y1)
+        lat0 = min(point.lat, lat0)
+        lat1 = max(point.lat, lat1)
+        lng0 = min(point.lng, lng0)
+        lng1 = max(point.lng, lng1)
 
     overpass = Overpass()
     result = overpass.query(
-        f'node({x1},{y1},{x0},{y0})["tourism"]; out;')
+        f'node({lat1},{lng1},{lat0},{lng0})["tourism"]; out;')
 
     objects = []
     for obj in result.elements():

@@ -54,3 +54,4 @@ class PlanTripRequest(BaseModel):
     start_time: str
     end_time: str
     number_of_trips: int
+    city: str
