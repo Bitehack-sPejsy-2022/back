@@ -55,3 +55,11 @@ class PlanTripRequest(BaseModel):
     end_time: str
     number_of_trips: int
     city: str
+
+class PointRequest(BaseModel):
+    latlng: GeoPoint
+    city: str
+
+class PolygoinRequest(BaseModel):
+    point: Polygon
+    city: str

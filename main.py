@@ -14,7 +14,8 @@ from models import (
     Polygon,
     Trip, RecommendedTrips,
     GeoPoint,
-    PlanTripRequest
+    PlanTripRequest,
+    PointRequest
 )
 from maps import search_for_cool_objects, user_search, polygon_search
 from path import find_path
@@ -48,11 +49,14 @@ async def poi_city(city: str):
 
 
 @app.post('/search_near_point', response_model=ListOfPois)
-async def search_near_point(point: GeoPoint):
+async def search_near_point(request: PointRequest):
+    point: GeoPoint = request.latlng
+    city: str = request.city
+
     START = time.time()
-    pois: List[Poi] = user_search(point.lat, point.lng, "Kraków")
+    pois: List[Poi] = user_search(point.lat, point.lng, city)
     print("Near point", (time.time() - START))
-    print(type(pois))
+
     return ListOfPois(list_of_poi=pois)
 
 
@@ -66,13 +70,13 @@ async def search_polygon(polygon: Polygon):
 
 
 @app.post('/plan_trip', response_model=RecommendedTrips)
-async def plan_trip(plan_trip_request: PlanTripRequest):
+async def plan_trip(request: PlanTripRequest):
     START = time.time()
     # simplyfying names of arguments from request
-    chosen_pois: ListOfTimedPois = plan_trip_request.chosen_pois
-    start_time: str = plan_trip_request.start_time
-    end_time: str = plan_trip_request.end_time
-    number_of_trips: int = plan_trip_request.number_of_trips
+    chosen_pois: ListOfTimedPois = request.chosen_pois
+    start_time: str = request.start_time
+    end_time: str = request.end_time
+    number_of_trips: int = request.number_of_trips
 
     # decode time strings to float typed hours
     temp: str = start_time[(start_time.find('T') + 1): start_time.find('Z')]
