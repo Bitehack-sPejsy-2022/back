@@ -18,6 +18,9 @@ cd back
 uvicorn main:app --reload
 ```
 
+### Setup the front
+[Front repository](https://github.com/Bitehack-sPejsy-2022/front)
+
 ## Endpoints:
 ### GET:
 "/" - home (idk if we return anything here)
@@ -33,3 +36,4 @@ uvicorn main:app --reload
 "/plan_trip" - takes request with POIs required by user and generates trip plans
 
 <!-- "/generate_pois" - it requires JSON in form of ListOfPois (look at models.py) and returns list of pois generated nearby ones that were already selected -->
+
