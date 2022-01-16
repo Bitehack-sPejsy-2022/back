@@ -75,7 +75,7 @@ async def search_near_point(point: GeoPoint):
 @app.post('/search_polygon', response_model=ListOfPois)
 async def search_polygon(polygon: Polygon):
     START = time.time()
-    pois: List[Dict[str, Any]] = user_search(polygon)
+    pois: List[Dict[str, Any]] = user_search(polygon, polygon)
     print("Polygon", (time.time() - START))
     return {'list_of_poi': [poi for poi in pois]}
 
@@ -136,8 +136,8 @@ async def plan_trip(plan_trip_request: PlanTripRequest):
             # get transition times between points on path
             transit_times[i] = transition_time_matrix[path[i]][path[i + 1]]
 
-            temp_route += find_route_single((chosen_pois.list_of_poi[i].poi.latitude, chosen_pois.list_of_poi[i].poi.longitude),
-                                            (chosen_pois.list_of_poi[i+1].poi.latitude, chosen_pois.list_of_poi[i+1].poi.longitude))
+            temp_route += find_route_single((chosen_pois.list_of_poi[path[i]].poi.latitude, chosen_pois.list_of_poi[path[i]].poi.longitude),
+                                            (chosen_pois.list_of_poi[path[i+1]].poi.latitude, chosen_pois.list_of_poi[path[i+1]].poi.longitude))
 
         print("Route", (time.time() - START))
         START = time.time()
