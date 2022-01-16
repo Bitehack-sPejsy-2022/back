@@ -111,7 +111,7 @@ async def plan_trip(plan_trip_request: PlanTripRequest):
             temp_route += find_route_single((chosen_pois.list_of_poi[i].poi.latitude, chosen_pois.list_of_poi[i].poi.longitude),
                                         (chosen_pois.list_of_poi[i+1].poi.latitude, chosen_pois.list_of_poi[i+1].poi.longitude)) 
         
-        route = [GeoPoint(lat=point[0], lng=point[1]) for idx,point in enumerate(temp_route) if idx % 10 == 0]
+        route = [GeoPoint(lat=point[0], lng=point[1]) for idx,point in enumerate(temp_route) if idx % 1 == 0]
         bounds = (
                 (min([route_point.lat for route_point in route]), min([route_point.lng for route_point in route])),
                 (max([route_point.lat for route_point in route]), max([route_point.lng for route_point in route])),
