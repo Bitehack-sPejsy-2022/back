@@ -124,7 +124,8 @@ async def plan_trip(plan_trip_request: PlanTripRequest):
         print("Route", (time.time() - START))
         START = time.time()
 
-        route = [GeoPoint(lat=point[0], lng=point[1]) for idx,point in enumerate(temp_route) if idx % 1 == 0]
+        # beware of werid indexing of point!!! It is a "feature" of routing library
+        route = [GeoPoint(lat=point[1], lng=point[0]) for idx,point in enumerate(temp_route) if idx % 1 == 0]
         bounds = (
                 (min([route_point.lat for route_point in route]), min([route_point.lng for route_point in route])),
                 (max([route_point.lat for route_point in route]), max([route_point.lng for route_point in route])),

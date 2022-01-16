@@ -4,10 +4,9 @@ from openrouteservice import convert
 from typing import Tuple, List
 
 
-client = openrouteservice.Client(key='5b3ce3597851110001cf62485da6d011d1ca48179dbe061a80ee1fa6')
-
 def find_route_single(start : Tuple[float, float], end : Tuple[float, float]) -> List[Tuple[float, float]]:
-    dir = directions(client, ((start[1], start[0]), (end[1], end[0])))
+    client = openrouteservice.Client(key='5b3ce3597851110001cf62485da6d011d1ca48179dbe061a80ee1fa6')
+    dir = directions(client, ((start[1], start[0]), (end[1], end[0])), profile='foot-walking')
     decoded = convert.decode_polyline(dir['routes'][0]['geometry'])
     return decoded['coordinates']
 
