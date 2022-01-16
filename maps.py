@@ -105,7 +105,7 @@ def user_search(lat: float, lon: float) -> List[Dict[str, Any]]:
 
     overpass = Overpass()
     result = overpass.query(
-        f'node({lat0},{lon0},{lat1},{lon1})["tourism"]; out;')
+        f'node({lat1},{lon1},{lat0},{lon0})["tourism"]; out;')
 
     objects = []
     for obj in result.elements():
@@ -136,7 +136,7 @@ def user_search(lat: float, lon: float) -> List[Dict[str, Any]]:
     return sorted(objects, key=lambda obj: (obj['latitude'] - lat)**2 * (obj['longitude'] - lon)**2)
 
 
-def polygon_search(polygon: List[List[float, float]]):
+def polygon_searchh(polygon: List[List[float]]):
     if len(polygon):
         return []
 
