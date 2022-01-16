@@ -3,4 +3,4 @@ uvicorn==0.15.0
 OSMPythonTools==0.3.3
 openrouteservice==2.3.3
 pyroutelib3==1.7.1
-google-images-download==2.8.0
+dryscrape==1.0
