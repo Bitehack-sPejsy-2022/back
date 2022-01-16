@@ -100,13 +100,13 @@ def search_for_cool_objects(city: str) -> List[Poi]:
 
 
 def user_search(lat: float, lon: float, city: str) -> List[Poi]:
-    cool_objs = search_for_cool_objects(city)
+    cool_objs: List[Poi] = search_for_cool_objects(city)
 
     cool_objs.sort(key=lambda obj: (obj.latitude - lat)
                    ** 2 + (obj.longitude - lon)**2)
 
     if cool_objs:
-        return cool_objs[0]
+        return [cool_objs[0]]
     return []
 
 
