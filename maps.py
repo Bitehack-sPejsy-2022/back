@@ -107,7 +107,7 @@ def user_search(lat: float, lon: float) -> List[Dict[str, Any]]:
 
     overpass = Overpass()
     result = overpass.query(
-        f'nwr({lat0},{lon0},{lat1},{lon1})["tourism"]; out;')
+        f'node({lat0},{lon0},{lat1},{lon1})["tourism"]; out;')
 
     objects = []
     for obj in result.elements():

@@ -93,6 +93,7 @@ async def plan_trip(plan_trip_request: PlanTripRequest):
     START = time.time()
 
     for chosen_poi in chosen_pois.list_of_poi:
+        print(chosen_poi.poi.picture_url)
         time_spent_in_pois.append(chosen_poi.time_spent)
         opening_hours.append((chosen_poi.poi.open_hour, chosen_poi.poi.close_hour))
 

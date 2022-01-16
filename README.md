@@ -28,4 +28,6 @@ uvicorn main:app --reload
 
 "/search_near_point" - it searches for points in 50m epsilon around click on the map
 
+"/plan_trip" - takes request with POIs required by user and generates trip plans
+
 <!-- "/generate_pois" - it requires JSON in form of ListOfPois (look at models.py) and returns list of pois generated nearby ones that were already selected -->
