@@ -129,12 +129,19 @@ async def plan_trip(request: PlanTripRequest):
         # for n POIs there are n-1 transitions
         transit_times: List[float] = [0] * (len(path)-1)
         temp_route: List[Tuple[float, float]] = []
+
+       
         for i in range(len(path) - 1):
             # get transition times between points on path
             transit_times[i] = transition_time_matrix[path[i]][path[i + 1]]
 
             temp_route += find_route_single((extended_chosen_pois[path[i]].poi.latitude, extended_chosen_pois[path[i]].poi.longitude),
                                             (extended_chosen_pois[path[i+1]].poi.latitude, extended_chosen_pois[path[i+1]].poi.longitude))
+
+            # updating visit times in POIs
+            list_of_poi.list_of_poi[i].time_spent = starting_time[i+1] - transit_times[i] - starting_time[i]
+
+        list_of_poi.list_of_poi[len(path) - 1].time_spent =  end_hour - starting_time[len(path) - 1]
 
         print("Route", (time.time() - START))
         START = time.time()
