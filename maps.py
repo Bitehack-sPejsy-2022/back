@@ -99,46 +99,19 @@ def search_for_cool_objects(city: str) -> List[Poi]:
     return objects
 
 
-def user_search(lat: float, lon: float, eps: float = 0.0001) -> List[Dict[str, Any]]:
-    # 1° of latitude = always 111.32 km
-    lat0, lat1 = lat - eps, lat + eps
-    lon0, lon1 = lon - eps, lon + eps
+def user_search(lat: float, lon: float, city: str) -> List[Dict[str, Any]]:
+    cool_objs = search_for_cool_objects(city)
 
-    overpass = Overpass()
-    result = overpass.query(
-        f'node["tourism"]({lat0},{lon0},{lat1},{lon1}); out;')
+    cool_objs.sort(key=lambda obj: (obj.latitude - lat)
+                   ** 2 + (obj.longitude - lon)**2)
 
-    objects = []
-    for obj in result.elements():
-        name = obj.tag("name")
-        description = gen_description(obj)
-        address = gen_address(obj)
-        category = obj.tag("tourism")
-        latitide, longitude = get_lat_lon(obj)
-
-        picture_url = ""
-
-        if None in (name, address, category, latitide, longitude, picture_url):
-            continue
-
-        poi: Dict[str, Any] = {}
-        poi['name'] = name
-        poi['description'] = description
-        poi['address'] = address
-        poi['category'] = category.capitalize()
-        poi['latitude'] = latitide
-        poi['longitude'] = longitude
-        poi['open_hour'] = 7
-        poi['close_hour'] = 20
-        poi['picture_url'] = picture_url
-
-        objects.append(poi)
-
-    return sorted(objects, key=lambda obj: (obj['latitude'] - lat)**2 * (obj['longitude'] - lon)**2)
+    if cool_objs:
+        return cool_objs[0]
+    return []
 
 
-def polygon_search(polygon: List[GeoPoint]):
-    if len(polygon):
+def polygon_search(polygon: List[GeoPoint], city: str):
+    if len(polygon) == 0:
         return []
 
     lat0, lat1, lng0, lng1 = polygon[0].lat, polygon[0].lat, polygon[0].lng, polygon[0].lng,
@@ -149,42 +122,26 @@ def polygon_search(polygon: List[GeoPoint]):
         lng0 = min(point.lng, lng0)
         lng1 = max(point.lng, lng1)
 
-    overpass = Overpass()
-    result = overpass.query(
-        f'node({lat1},{lng1},{lat0},{lng0})["tourism"]; out;')
+    print(lat0, lat1, lng0, lng1)
 
-    objects = []
-    for obj in result.elements():
-        name = obj.tag("name")
-        description = gen_description(obj)
-        address = gen_address(obj)
-        category = obj.tag("tourism")
-        latitide, longitude = get_lat_lon(obj)
+    cool_objs = search_for_cool_objects(city)
 
-        picture_url = ""
+    r = []
+    for obj in cool_objs:
+        if lat0 <= obj.latitude <= lat1 and lng0 <= obj.longitude <= lng1:
+            r.append(obj)
 
-        if None in (name, address, category, latitide, longitude, picture_url):
-            continue
-
-        poi: Dict[str, Any] = {}
-        poi['name'] = name
-        poi['description'] = description
-        poi['address'] = address
-        poi['category'] = category.capitalize()
-        poi['latitude'] = latitide
-        poi['longitude'] = longitude
-        poi['open_hour'] = 7
-        poi['close_hour'] = 20
-        poi['picture_url'] = picture_url
-
-        objects.append(poi)
-
-    return objects
+    return r
 
 
 if __name__ == "__main__":
-    for i in search_for_cool_objects("Kraków"):
-        for j in i.items():
-            print(j)
+    # for i in search_for_cool_objects("Kraków"):
+    #     for j in i.items():
+    #         print(j)
     print("--------------- TEST ---------------")
-    print(user_search(50.06443278632467, 19.94349002838135))
+    # print(user_search(50.06443278632467, 19.94349002838135, "Kraków"))
+    print("--------------- TEST ---------------")
+    a = GeoPoint(lat=50.06303278632467, lng=19.84349002838135)
+    b = GeoPoint(lat=51.06503278632467, lng=20.84549002838135)
+
+    print(polygon_search([a, b], "Kraków"))

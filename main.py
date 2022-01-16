@@ -40,7 +40,6 @@ class ListOfPoi(BaseModel):
     list_of_poi: List[Poi]
 
 
-
 @app.get('/poi/city/{city}', response_model=ListOfPois)
 async def poi_city(city: str):
     pois: List[Poi] = search_for_cool_objects(city)
@@ -51,7 +50,7 @@ async def poi_city(city: str):
 @app.post('/search_near_point', response_model=ListOfPois)
 async def search_near_point(point: GeoPoint):
     START = time.time()
-    pois: List[Dict[str, Any]] = user_search(point.lat, point.lng)
+    pois: List[Dict[str, Any]] = user_search(point.lat, point.lng, "Kraków")
     print("Near point", (time.time() - START))
     return {'list_of_poi': [poi for poi in pois]}
 
@@ -59,7 +58,8 @@ async def search_near_point(point: GeoPoint):
 @app.post('/search_polygon', response_model=ListOfPois)
 async def search_polygon(polygon: Polygon):
     START = time.time()
-    pois: List[Dict[str, Any]] = polygon_search(polygon.list_of_points)
+    pois: List[Dict[str, Any]] = polygon_search(
+        polygon.list_of_points, "Kraków")
     print("Polygon", (time.time() - START))
     return {'list_of_poi': [poi for poi in pois]}
 
@@ -86,7 +86,8 @@ async def plan_trip(plan_trip_request: PlanTripRequest):
     opening_hours: List[Tuple[float, float]] = []
 
     # append extra pois to chosen pois
-    extra_pois: List[TimedPoi] = [TimedPoi(poi=poi, time_spent=random.uniform(1,2)) for poi in search_for_cool_objects(plan_trip_request.city)]
+    extra_pois: List[TimedPoi] = [TimedPoi(poi=poi, time_spent=random.uniform(
+        1, 2)) for poi in search_for_cool_objects(plan_trip_request.city)]
 
     # nxn matrix where n is number of POIs
     transition_time_matrix: List[List[float]] = get_matrix(
@@ -131,11 +132,13 @@ async def plan_trip(plan_trip_request: PlanTripRequest):
 
         # beware of werid indexing of point!!! It is a "feature" of routing library
         route = [GeoPoint(lat=point[1], lng=point[0])
-                for idx, point in enumerate(temp_route) if idx % 1 == 0]
+                 for idx, point in enumerate(temp_route) if idx % 1 == 0]
 
         bounds = (
-            (min([route_point.lat for route_point in route]), min([route_point.lng for route_point in route])),
-            (max([route_point.lat for route_point in route]), max([route_point.lng for route_point in route])),
+            (min([route_point.lat for route_point in route]),
+             min([route_point.lng for route_point in route])),
+            (max([route_point.lat for route_point in route]),
+             max([route_point.lng for route_point in route])),
         )
 
         trip = Trip(list_of_poi=list_of_poi, transit_times=transit_times,
