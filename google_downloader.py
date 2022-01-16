@@ -32,7 +32,7 @@ def get_photos_from_bing(city: str, key: str):
     soup = BeautifulSoup(response)
 
     for i in soup.find_all("a", {"class": "iusc"}):
-        a = re.search('\"murl\":\"[^\"]+\"', str(i))
+        a = re.search('\"murl\":\"[^\"]+\.[a-z]+\"', str(i))
         if a:
             with open("cache-photos", "a") as f:
                 f.write(key + "\t" + a.group(0)[8:-1] + "\n")
