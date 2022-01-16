@@ -18,6 +18,9 @@ cd back
 uvicorn main:app --reload
 ```
 
+### Setup the front
+[Front repository](https://github.com/Bitehack-sPejsy-2022/front)
+
 ## Endpoints:
 ### GET:
 "/" - home (idk if we return anything here)
