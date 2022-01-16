@@ -1,14 +1,14 @@
-from cmath import polar
 from typing import List, Optional, Dict, Any, Tuple
+import random
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import time
 
-from mockup_poi import generate_poi
 from models import (
     Poi,
+    TimedPoi,
     ListOfPois,
     ListOfTimedPois,
     Polygon,
@@ -16,10 +16,10 @@ from models import (
     GeoPoint,
     PlanTripRequest
 )
-from maps import search_for_cool_objects, user_search
+from maps import search_for_cool_objects, user_search, polygon_search
 from path import find_path
 from matrix import get_matrix
-from routing import find_route, find_route_single
+from routing import find_route_single
 
 app = FastAPI()
 
@@ -40,28 +40,12 @@ class ListOfPoi(BaseModel):
     list_of_poi: List[Poi]
 
 
-@app.get('/')
-async def root():
-    return {"message": "ściągi kurwa tej?"}
-
 
 @app.get('/poi/city/{city}', response_model=ListOfPois)
 async def poi_city(city: str):
-    if city == 'chuj':
-        pois: List[Dict[str, Any]] = [generate_poi() for _ in range(3)]
-    else:
-        pois: List[Dict[str, Any]] = search_for_cool_objects(city)
+    pois: List[Poi] = search_for_cool_objects(city)
 
-    return {'list_of_poi': [poi for poi in pois]}
-
-
-@app.post('/generate_pois', response_model=ListOfPois)
-async def generate_pois(chosen_pois: ListOfPois):
-    # TODO query pois nearby already chosen pois
-
-    pois: List[Dict[str, Any]] = [generate_poi() for _ in range(3)]
-
-    return {'list_of_poi': [poi for poi in pois]}
+    return {'list_of_poi': pois}
 
 
 @app.post('/search_near_point', response_model=ListOfPois)
@@ -75,7 +59,7 @@ async def search_near_point(point: GeoPoint):
 @app.post('/search_polygon', response_model=ListOfPois)
 async def search_polygon(polygon: Polygon):
     START = time.time()
-    pois: List[Dict[str, Any]] = user_search(polygon)
+    pois: List[Dict[str, Any]] = polygon_search(polygon.list_of_points)
     print("Polygon", (time.time() - START))
     return {'list_of_poi': [poi for poi in pois]}
 
@@ -89,7 +73,7 @@ async def plan_trip(plan_trip_request: PlanTripRequest):
     end_time: str = plan_trip_request.end_time
     number_of_trips: int = plan_trip_request.number_of_trips
 
-    # decode time strings
+    # decode time strings to float typed hours
     temp: str = start_time[(start_time.find('T') + 1): start_time.find('Z')]
     start_hour: float = float(temp[0:2]) + \
         float(temp[3:5])/60 + float(temp[6:8])/3600
@@ -100,6 +84,9 @@ async def plan_trip(plan_trip_request: PlanTripRequest):
 
     time_spent_in_pois: List[float] = []
     opening_hours: List[Tuple[float, float]] = []
+
+    # append extra pois to chosen pois
+    extra_pois: List[TimedPoi] = [TimedPoi(poi=poi, time_spent=random.uniform(1,2)) for poi in search_for_cool_objects(plan_trip_request.city)]
 
     # nxn matrix where n is number of POIs
     transition_time_matrix: List[List[float]] = get_matrix(
@@ -144,13 +131,11 @@ async def plan_trip(plan_trip_request: PlanTripRequest):
 
         # beware of werid indexing of point!!! It is a "feature" of routing library
         route = [GeoPoint(lat=point[1], lng=point[0])
-                 for idx, point in enumerate(temp_route) if idx % 1 == 0]
+                for idx, point in enumerate(temp_route) if idx % 1 == 0]
 
         bounds = (
-            (min([route_point.lat for route_point in route]),
-             min([route_point.lng for route_point in route])),
-            (max([route_point.lat for route_point in route]),
-             max([route_point.lng for route_point in route])),
+            (min([route_point.lat for route_point in route]), min([route_point.lng for route_point in route])),
+            (max([route_point.lat for route_point in route]), max([route_point.lng for route_point in route])),
         )
 
         trip = Trip(list_of_poi=list_of_poi, transit_times=transit_times,
