@@ -1,8 +1,9 @@
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Tuple
 
 from OSMPythonTools.overpass import Overpass
 
-from models import Poi
+from google_downloader import get_photos_from_bing
+from models import GeoPoint, Poi
 
 
 def asdf(txt, x):
@@ -59,13 +60,13 @@ def get_lat_lon(obj):
         return None, None
 
 
-def search_for_cool_objects(city: str) -> List[Dict[str, Any]]:
+def search_for_cool_objects(city: str, attrs: str = '["tourism"]') -> List[Poi]:
     # cools found in Krakow: hotel hostel information motel gallery camp_site theme_park apartment zoo attraction guest_house museum
     COOLS = {"information", "gallery", "camp_site",
              "theme_park", "zoo", "attraction", "museum"}
 
     overpass = Overpass()
-    result = overpass.query(f'nwr["addr:city"="{city}"]["tourism"]; out;')
+    result = overpass.query(f'nwr["addr:city"="{city}"]{attrs}; out;')
     objects = []
     for obj in result.elements():
         if not obj.tag("tourism") in COOLS:
@@ -74,71 +75,77 @@ def search_for_cool_objects(city: str) -> List[Dict[str, Any]]:
         name = obj.tag("name")
         description = gen_description(obj)
         address = gen_address(obj)
-        category = obj.tag("tourism")
-        latitide, longitude = get_lat_lon(obj)
-        picture_url = ""
+        category = x if (x := obj.tag("tourism")) else ""
+        latitude, longitude = get_lat_lon(obj)
+        picture_url = get_photos_from_bing(city, name)
 
-        if None in (name, address, category, latitide, longitude, picture_url):
+        if None in (name, address, category, latitude, longitude, picture_url):
             continue
 
-        poi: Dict[str, Any] = {}
-        poi['name'] = name
-        poi['description'] = description
-        poi['address'] = address
-        poi['category'] = category.capitalize()
-        poi['latitude'] = latitide
-        poi['longitude'] = longitude
-        poi['open_hour'] = 7
-        poi['close_hour'] = 20
-        poi['picture_url'] = picture_url
+        poi = Poi(
+            name=name,
+            description=description,
+            address=address,
+            category=category.capitalize(),
+            latitude=latitude,
+            longitude=longitude,
+            open_hour=7,
+            close_hour=20,
+            picture_url=picture_url
+        )
 
         objects.append(poi)
 
     return objects
 
 
-def user_search(lat: float, lon: float) -> List[Dict[str, Any]]:
-    # 1° of latitude = always 111.32 km
-    eps = 0.001
-    lat0, lat1 = lat - eps, lat + eps
-    lon0, lon1 = lon - eps, lon + eps
+def user_search(lat: float, lon: float, city: str, epsilon: float = 0.000002) -> List[Poi]:
+    cool_objs: List[Poi] = search_for_cool_objects(city, '')
 
-    overpass = Overpass()
-    result = overpass.query(
-        f'nwr["tourism"]({lat0},{lon0},{lat1},{lon1}); out;')
+    iterator = filter(lambda poi: (poi.latitude - lat)** 2 + (poi.longitude - lon)**2 < epsilon, cool_objs)
+    cool_objs = list(iterator)
 
-    objects = []
-    for obj in result.elements():
-        name = obj.tag("name")
-        description = gen_description(obj)
-        address = gen_address(obj)
-        category = obj.tag("tourism")
-        latitide, longitude = get_lat_lon(obj)
+    cool_objs.sort(key=lambda obj: (obj.latitude - lat)** 2 + (obj.longitude - lon)**2)
 
-        picture_url = ""
+    print([(poi.latitude - lat)** 2 + (poi.longitude - lon)**2 for poi in cool_objs])
 
-        if None in (name, address, category, latitide, longitude, picture_url):
-            continue
+    if cool_objs:
+        return [cool_objs[0]]
+    return []
 
-        poi: Dict[str, Any] = {}
-        poi['name'] = name
-        poi['description'] = description
-        poi['address'] = address
-        poi['category'] = category.capitalize()
-        poi['latitude'] = latitide
-        poi['longitude'] = longitude
-        poi['open_hour'] = 7
-        poi['close_hour'] = 20
-        poi['picture_url'] = picture_url
 
-        objects.append(poi)
+def polygon_search(polygon: List[GeoPoint], city: str):
+    if len(polygon) == 0:
+        return []
 
-    return sorted(objects, key=lambda obj: (obj['latitude'] - lat)**2 * (obj['longitude'] - lon)**2)
+    lat0, lat1, lng0, lng1 = polygon[0].lat, polygon[0].lat, polygon[0].lng, polygon[0].lng,
+    point: GeoPoint
+    for point in polygon[1:]:
+        lat0 = min(point.lat, lat0)
+        lat1 = max(point.lat, lat1)
+        lng0 = min(point.lng, lng0)
+        lng1 = max(point.lng, lng1)
+
+    print(lat0, lat1, lng0, lng1)
+
+    cool_objs = search_for_cool_objects(city)
+
+    r = []
+    for obj in cool_objs:
+        if lat0 <= obj.latitude <= lat1 and lng0 <= obj.longitude <= lng1:
+            r.append(obj)
+
+    return r
 
 
 if __name__ == "__main__":
-    for i in search_for_cool_objects("Kraków"):
-        for j in i.items():
-            print(j)
+    # for i in search_for_cool_objects("Kraków"):
+    #     for j in i.items():
+    #         print(j)
     print("--------------- TEST ---------------")
-    print(user_search(50.06443278632467, 19.94349002838135))
+    # print(user_search(50.06443278632467, 19.94349002838135, "Kraków"))
+    print("--------------- TEST ---------------")
+    a = GeoPoint(lat=50.06303278632467, lng=19.84349002838135)
+    b = GeoPoint(lat=51.06503278632467, lng=20.84549002838135)
+
+    print(polygon_search([a, b], "Kraków"))
