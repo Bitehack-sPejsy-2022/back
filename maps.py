@@ -105,7 +105,7 @@ def user_search(lat: float, lon: float) -> List[Dict[str, Any]]:
 
     overpass = Overpass()
     result = overpass.query(
-        f'node({lat1},{lon1},{lat0},{lon0})["tourism"]; out;')
+        f'node["tourism"]({lat0},{lon0},{lat1},{lon1}); out;')
 
     objects = []
     for obj in result.elements():
@@ -149,7 +149,7 @@ def polygon_searchh(polygon: List[List[float]]):
 
     overpass = Overpass()
     result = overpass.query(
-        f'node({x0},{y0},{x1},{y1})["tourism"]; out;')
+        f'node({x1},{y1},{x0},{y0})["tourism"]; out;')
 
     objects = []
     for obj in result.elements():
