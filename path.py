@@ -2,7 +2,7 @@ from random import shuffle
 from typing import List, Tuple
 
 # zalozenie TIME zawiera MINIMALNY CZAS, TIME_CONST to akceptowalny dodatkowy czas
-def calculate_cost(t, start, end, time, hours, matrix, TIME_CONST = 1):
+def calculate_cost(t, start, end, time, hours, matrix):
     n = len(t)
 
     starts = [0 for _ in range(n)]
@@ -15,8 +15,8 @@ def calculate_cost(t, start, end, time, hours, matrix, TIME_CONST = 1):
         current_time += matrix[t[i-1]][t[i]]
 
         # czekac trzeba
-        if current_time+TIME_CONST < hours[t[i]][0]:
-            cost += hours[t[i]][0]-(current_time+TIME_CONST)
+        if current_time+1 < hours[t[i]][0]:
+            cost += hours[t[i]][0]-(current_time+1)
             current_time = hours[t[i]][0]
 
 
@@ -31,6 +31,7 @@ def calculate_cost(t, start, end, time, hours, matrix, TIME_CONST = 1):
             return float("inf"), []
     return cost, starts
 
+
 def find_path(
             start_hour: float, 
             end_hour: float, 
@@ -40,7 +41,12 @@ def find_path(
             start_point = None
         ):
 
+    while sum(time) > end_hour-start_hour:
+        time.pop()
+        hours.pop()
+
     n = len(hours)
+    if n == 0: return [], []
     ITER = 100000
     a: List[int] = [i for i in range(n)]
 
@@ -59,16 +65,19 @@ def find_path(
             best = a, starts
 
             min_cost = cost
-    
-    if min_cost == float("inf") and any(((x[1] != 0) and (x[1] < start_hour)) for x in hours):
-        print("NIE DA SIE")
 
-        return [], []
+    if min_cost == float("inf") or any(((x[1] != 0) and (x[1] < start_hour)) for x in hours):
+        hours.pop()
+        time.pop()
+        return find_path(start_hour, end_hour, time, hours, matrix, start_point)
     return best
 
-if __name__ == '__main__':
-    for _ in range(5):
-        print(find_path(6, 20, time, hours, matrix))
+if __name__ == "__main__":
+    print("6-19", find_path(6, 19, time, hours, matrix))
+    print("6-14", find_path(6, 14, time, hours, matrix))
+    print("6-12", find_path(6, 12, time, hours, matrix))
+    print("6-9", find_path(6, 9, time, hours, matrix))
+    print("6-7", find_path(6, 7, time, hours, matrix))
 
 
 
