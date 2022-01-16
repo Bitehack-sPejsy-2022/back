@@ -96,7 +96,7 @@ async def plan_trip(request: PlanTripRequest):
         # Generate data separately for each trip
         # append extra pois to chosen pois
         extra_pois: List[TimedPoi] = [TimedPoi(poi=poi, time_spent=random.uniform(
-            1, 2)) for poi in search_for_cool_objects(plan_trip_request.city)]
+            1, 2)) for poi in search_for_cool_objects(request.city)]
 
         random.shuffle(extra_pois)
         extended_chosen_pois = chosen_pois.list_of_poi.copy()

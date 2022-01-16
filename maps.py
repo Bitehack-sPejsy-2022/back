@@ -99,11 +99,15 @@ def search_for_cool_objects(city: str, attrs: str = '["tourism"]') -> List[Poi]:
     return objects
 
 
-def user_search(lat: float, lon: float, city: str) -> List[Poi]:
-    cool_objs: List[Poi] = search_for_cool_objects(city, "")
+def user_search(lat: float, lon: float, city: str, epsilon: float = 0.000002) -> List[Poi]:
+    cool_objs: List[Poi] = search_for_cool_objects(city, '')
 
-    cool_objs.sort(key=lambda obj: (obj.latitude - lat)
-                   ** 2 + (obj.longitude - lon)**2)
+    iterator = filter(lambda poi: (poi.latitude - lat)** 2 + (poi.longitude - lon)**2 < epsilon, cool_objs)
+    cool_objs = list(iterator)
+
+    cool_objs.sort(key=lambda obj: (obj.latitude - lat)** 2 + (obj.longitude - lon)**2)
+
+    print([(poi.latitude - lat)** 2 + (poi.longitude - lon)**2 for poi in cool_objs])
 
     if cool_objs:
         return [cool_objs[0]]
