@@ -82,38 +82,42 @@ async def plan_trip(plan_trip_request: PlanTripRequest):
     end_hour: float = float(temp[0:2]) + \
         float(temp[3:5])/60 + float(temp[6:8])/3600
 
-    time_spent_in_pois: List[float] = []
-    opening_hours: List[Tuple[float, float]] = []
-
-    # append extra pois to chosen pois
-    extra_pois: List[TimedPoi] = [TimedPoi(poi=poi, time_spent=random.uniform(1,2)) for poi in search_for_cool_objects(plan_trip_request.city)]
-
-    # nxn matrix where n is number of POIs
-    transition_time_matrix: List[List[float]] = get_matrix(
-        [(poi_time.poi.longitude, poi_time.poi.latitude) for poi_time in chosen_pois.list_of_poi])
-
-    print("Macierz tranzycji", (time.time() - START))
-    START = time.time()
-
-    for chosen_poi in chosen_pois.list_of_poi:
-        print(chosen_poi.poi.picture_url)
-        time_spent_in_pois.append(chosen_poi.time_spent)
-        opening_hours.append(
-            (chosen_poi.poi.open_hour, chosen_poi.poi.close_hour))
-
     trips: List[Trip] = []
 
     for _ in range(number_of_trips):
         path: List[int]
         starting_time: List[float]
-        # TODO give deep copies
+
+        # Generate data separately for each trip
+        # append extra pois to chosen pois
+        extra_pois: List[TimedPoi] = [TimedPoi(poi=poi, time_spent=random.uniform(1,2)) for poi in search_for_cool_objects(plan_trip_request.city)]
+
+        random.shuffle(extra_pois)
+        extended_chosen_pois = chosen_pois.list_of_poi.copy()
+        extended_chosen_pois.extend(extra_pois[:3])
+
+        # nxn matrix where n is number of POIs
+        transition_time_matrix: List[List[float]] = get_matrix(
+            [(poi_time.poi.longitude, poi_time.poi.latitude) for poi_time in extended_chosen_pois])
+
+        print("Macierz tranzycji", (time.time() - START))
+        START = time.time()
+        
+        extended_time_spent_in_pois = []
+        extended_opening_hours = []
+
+        for chosen_poi in extended_chosen_pois:
+            extended_time_spent_in_pois.append(chosen_poi.time_spent)
+            extended_opening_hours.append(
+                (chosen_poi.poi.open_hour, chosen_poi.poi.close_hour))
+
         path, starting_time = find_path(
-            start_hour, end_hour, time_spent_in_pois, opening_hours, transition_time_matrix)
+            start_hour, end_hour, extended_time_spent_in_pois, extended_opening_hours, transition_time_matrix)
 
         print("Find Path", (time.time() - START))
         START = time.time()
 
-        temp_list_of_poi = [chosen_pois.list_of_poi[index] for index in path]
+        temp_list_of_poi = [extended_chosen_pois[index] for index in path]
         list_of_poi = ListOfTimedPois(list_of_poi=temp_list_of_poi)
 
         # for n POIs there are n-1 transitions
@@ -123,8 +127,8 @@ async def plan_trip(plan_trip_request: PlanTripRequest):
             # get transition times between points on path
             transit_times[i] = transition_time_matrix[path[i]][path[i + 1]]
 
-            temp_route += find_route_single((chosen_pois.list_of_poi[path[i]].poi.latitude, chosen_pois.list_of_poi[path[i]].poi.longitude),
-                                            (chosen_pois.list_of_poi[path[i+1]].poi.latitude, chosen_pois.list_of_poi[path[i+1]].poi.longitude))
+            temp_route += find_route_single((extended_chosen_pois[path[i]].poi.latitude, extended_chosen_pois[path[i]].poi.longitude),
+                                            (extended_chosen_pois[path[i+1]].poi.latitude, extended_chosen_pois[path[i+1]].poi.longitude))
 
         print("Route", (time.time() - START))
         START = time.time()
