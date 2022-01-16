@@ -50,18 +50,19 @@ async def poi_city(city: str):
 @app.post('/search_near_point', response_model=ListOfPois)
 async def search_near_point(point: GeoPoint):
     START = time.time()
-    pois: List[Dict[str, Any]] = user_search(point.lat, point.lng, "Kraków")
+    pois: List[Poi] = user_search(point.lat, point.lng, "Kraków")
     print("Near point", (time.time() - START))
-    return {'list_of_poi': [poi for poi in pois]}
+    print(type(pois))
+    return ListOfPois(list_of_poi=pois)
 
 
 @app.post('/search_polygon', response_model=ListOfPois)
 async def search_polygon(polygon: Polygon):
     START = time.time()
-    pois: List[Dict[str, Any]] = polygon_search(
+    pois: List[Poi] = polygon_search(
         polygon.list_of_points, "Kraków")
     print("Polygon", (time.time() - START))
-    return {'list_of_poi': [poi for poi in pois]}
+    return {'list_of_poi': pois}
 
 
 @app.post('/plan_trip', response_model=RecommendedTrips)

@@ -99,7 +99,7 @@ def search_for_cool_objects(city: str) -> List[Poi]:
     return objects
 
 
-def user_search(lat: float, lon: float, city: str) -> List[Dict[str, Any]]:
+def user_search(lat: float, lon: float, city: str) -> List[Poi]:
     cool_objs = search_for_cool_objects(city)
 
     cool_objs.sort(key=lambda obj: (obj.latitude - lat)
