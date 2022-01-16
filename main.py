@@ -75,7 +75,7 @@ async def search_near_point(point: GeoPoint):
 @app.post('/search_polygon', response_model=ListOfPois)
 async def search_polygon(polygon: Polygon):
     START = time.time()
-    pois: List[Dict[str, Any]] = user_search(polygon, polygon)
+    pois: List[Dict[str, Any]] = user_search(polygon)
     print("Polygon", (time.time() - START))
     return {'list_of_poi': [poi for poi in pois]}
 
