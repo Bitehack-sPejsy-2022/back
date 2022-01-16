@@ -97,11 +97,13 @@ def search_for_cool_objects(city: str) -> List[Dict[str, Any]]:
     return objects
 
 
-def user_search(lat: float, lon: float) -> List[Dict[str, Any]]:
+def user_search(lat: float, lon: float, city: str) -> List[Dict[str, Any]]:
     # 1° of latitude = always 111.32 km
     eps = 0.0001
     lat0, lat1 = lat - eps, lat + eps
     lon0, lon1 = lon - eps, lon + eps
+
+    cools = search_for_cool_objects(city)
 
     overpass = Overpass()
     result = overpass.query(
