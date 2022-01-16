@@ -1,3 +1,4 @@
+from cmath import polar
 from typing import List, Optional, Dict, Any, Tuple
 
 from fastapi import FastAPI
@@ -10,6 +11,7 @@ from models import (
     Poi,
     ListOfPois,
     ListOfTimedPois,
+    Polygon,
     Trip, RecommendedTrips,
     GeoPoint,
     PlanTripRequest
@@ -33,6 +35,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
 class ListOfPoi(BaseModel):
     list_of_poi: List[Poi]
 
@@ -49,8 +52,8 @@ async def poi_city(city: str):
     else:
         pois: List[Dict[str, Any]] = search_for_cool_objects(city)
 
-
     return {'list_of_poi': [poi for poi in pois]}
+
 
 @app.post('/generate_pois', response_model=ListOfPois)
 async def generate_pois(chosen_pois: ListOfPois):
@@ -60,6 +63,7 @@ async def generate_pois(chosen_pois: ListOfPois):
 
     return {'list_of_poi': [poi for poi in pois]}
 
+
 @app.post('/search_near_point', response_model=ListOfPois)
 async def search_near_point(point: GeoPoint):
     START = time.time()
@@ -67,27 +71,39 @@ async def search_near_point(point: GeoPoint):
     print("Near point", (time.time() - START))
     return {'list_of_poi': [poi for poi in pois]}
 
+
+@app.post('/search_polygon', response_model=ListOfPois)
+async def search_polygon(polygon: Polygon):
+    START = time.time()
+    pois: List[Dict[str, Any]] = user_search(polygon)
+    print("Polygon", (time.time() - START))
+    return {'list_of_poi': [poi for poi in pois]}
+
+
 @app.post('/plan_trip', response_model=RecommendedTrips)
 async def plan_trip(plan_trip_request: PlanTripRequest):
     START = time.time()
     # simplyfying names of arguments from request
     chosen_pois: ListOfTimedPois = plan_trip_request.chosen_pois
     start_time: str = plan_trip_request.start_time
-    end_time: str = plan_trip_request.end_time 
-    number_of_trips: int = plan_trip_request.number_of_trips 
+    end_time: str = plan_trip_request.end_time
+    number_of_trips: int = plan_trip_request.number_of_trips
 
     # decode time strings
-    temp: str = start_time[(start_time.find('T') + 1) : start_time.find('Z') ]
-    start_hour: float = float(temp[0:2]) + float(temp[3:5])/60 + float(temp[6:8])/3600
+    temp: str = start_time[(start_time.find('T') + 1): start_time.find('Z')]
+    start_hour: float = float(temp[0:2]) + \
+        float(temp[3:5])/60 + float(temp[6:8])/3600
 
-    temp: str = end_time[(end_time.find('T') + 1) : end_time.find('Z') ]
-    end_hour: float = float(temp[0:2]) + float(temp[3:5])/60 + float(temp[6:8])/3600
+    temp: str = end_time[(end_time.find('T') + 1): end_time.find('Z')]
+    end_hour: float = float(temp[0:2]) + \
+        float(temp[3:5])/60 + float(temp[6:8])/3600
 
     time_spent_in_pois: List[float] = []
     opening_hours: List[Tuple[float, float]] = []
 
     # nxn matrix where n is number of POIs
-    transition_time_matrix: List[List[float]] = get_matrix([(poi_time.poi.longitude, poi_time.poi.latitude) for poi_time in chosen_pois.list_of_poi])
+    transition_time_matrix: List[List[float]] = get_matrix(
+        [(poi_time.poi.longitude, poi_time.poi.latitude) for poi_time in chosen_pois.list_of_poi])
 
     print("Macierz tranzycji", (time.time() - START))
     START = time.time()
@@ -95,7 +111,8 @@ async def plan_trip(plan_trip_request: PlanTripRequest):
     for chosen_poi in chosen_pois.list_of_poi:
         print(chosen_poi.poi.picture_url)
         time_spent_in_pois.append(chosen_poi.time_spent)
-        opening_hours.append((chosen_poi.poi.open_hour, chosen_poi.poi.close_hour))
+        opening_hours.append(
+            (chosen_poi.poi.open_hour, chosen_poi.poi.close_hour))
 
     trips: List[Trip] = []
 
@@ -103,14 +120,15 @@ async def plan_trip(plan_trip_request: PlanTripRequest):
         path: List[int]
         starting_time: List[float]
         # TODO give deep copies
-        path, starting_time = find_path(start_hour, end_hour, time_spent_in_pois, opening_hours, transition_time_matrix)
+        path, starting_time = find_path(
+            start_hour, end_hour, time_spent_in_pois, opening_hours, transition_time_matrix)
 
         print("Find Path", (time.time() - START))
         START = time.time()
 
         temp_list_of_poi = [chosen_pois.list_of_poi[index] for index in path]
         list_of_poi = ListOfTimedPois(list_of_poi=temp_list_of_poi)
-        
+
         # for n POIs there are n-1 transitions
         transit_times: List[float] = [0] * (len(path)-1)
         temp_route: List[Tuple[float, float]] = []
@@ -119,20 +137,24 @@ async def plan_trip(plan_trip_request: PlanTripRequest):
             transit_times[i] = transition_time_matrix[path[i]][path[i + 1]]
 
             temp_route += find_route_single((chosen_pois.list_of_poi[i].poi.latitude, chosen_pois.list_of_poi[i].poi.longitude),
-                                        (chosen_pois.list_of_poi[i+1].poi.latitude, chosen_pois.list_of_poi[i+1].poi.longitude)) 
+                                            (chosen_pois.list_of_poi[i+1].poi.latitude, chosen_pois.list_of_poi[i+1].poi.longitude))
 
         print("Route", (time.time() - START))
         START = time.time()
 
         # beware of werid indexing of point!!! It is a "feature" of routing library
-        route = [GeoPoint(lat=point[1], lng=point[0]) for idx,point in enumerate(temp_route) if idx % 1 == 0]
+        route = [GeoPoint(lat=point[1], lng=point[0])
+                 for idx, point in enumerate(temp_route) if idx % 1 == 0]
 
         bounds = (
-                (min([route_point.lat for route_point in route]), min([route_point.lng for route_point in route])),
-                (max([route_point.lat for route_point in route]), max([route_point.lng for route_point in route])),
+            (min([route_point.lat for route_point in route]),
+             min([route_point.lng for route_point in route])),
+            (max([route_point.lat for route_point in route]),
+             max([route_point.lng for route_point in route])),
         )
 
-        trip = Trip(list_of_poi=list_of_poi, transit_times=transit_times, route=route, starting_time=starting_time, bounds=bounds)
+        trip = Trip(list_of_poi=list_of_poi, transit_times=transit_times,
+                    route=route, starting_time=starting_time, bounds=bounds)
         trips.append(trip)
 
     recommended_trips = RecommendedTrips(trips=trips)

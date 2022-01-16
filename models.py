@@ -2,6 +2,7 @@ from typing import List, Optional, Tuple
 
 from pydantic import BaseModel
 
+
 class Poi(BaseModel):
     name: str
     description: Optional[str] = None
@@ -13,19 +14,28 @@ class Poi(BaseModel):
     close_hour: int
     picture_url: str
 
+
 class ListOfPois(BaseModel):
     list_of_poi: List[Poi]
+
 
 class TimedPoi(BaseModel):
     poi: Poi
     time_spent: float
 
+
 class ListOfTimedPois(BaseModel):
     list_of_poi: List[TimedPoi]
+
 
 class GeoPoint(BaseModel):
     lat: float
     lng: float
+
+
+class Polygon(BaseModel):
+    list_of_points: List[GeoPoint]
+
 
 class Trip(BaseModel):
     list_of_poi: ListOfTimedPois
@@ -34,8 +44,10 @@ class Trip(BaseModel):
     route: List[GeoPoint]
     bounds: Tuple[Tuple[float, float], Tuple[float, float]]
 
+
 class RecommendedTrips(BaseModel):
     trips: List[Trip]
+
 
 class PlanTripRequest(BaseModel):
     chosen_pois: ListOfTimedPois
