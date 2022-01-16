@@ -120,12 +120,13 @@ async def plan_trip(plan_trip_request: PlanTripRequest):
 
             temp_route += find_route_single((chosen_pois.list_of_poi[i].poi.latitude, chosen_pois.list_of_poi[i].poi.longitude),
                                         (chosen_pois.list_of_poi[i+1].poi.latitude, chosen_pois.list_of_poi[i+1].poi.longitude)) 
-        
+
         print("Route", (time.time() - START))
         START = time.time()
 
         # beware of werid indexing of point!!! It is a "feature" of routing library
         route = [GeoPoint(lat=point[1], lng=point[0]) for idx,point in enumerate(temp_route) if idx % 1 == 0]
+
         bounds = (
                 (min([route_point.lat for route_point in route]), min([route_point.lng for route_point in route])),
                 (max([route_point.lat for route_point in route]), max([route_point.lng for route_point in route])),
