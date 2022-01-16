@@ -5,7 +5,6 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 from mockup_poi import generate_poi
-
 from models import (
     Poi,
     ListOfPois,
@@ -17,6 +16,7 @@ from models import (
 from maps import search_for_cool_objects, user_search
 from path import find_path
 from matrix import get_matrix
+from routing import find_route, find_route_single
 
 app = FastAPI()
 
@@ -103,11 +103,17 @@ async def plan_trip(plan_trip_request: PlanTripRequest):
         
         # for n POIs there are n-1 transitions
         transit_times: List[float] = [0] * (len(path)-1)
+        temp_route: List[Tuple[float, float]] = []
         for i in range(len(path) - 1):
             # get transition times between points on path
             transit_times[i] = transition_time_matrix[path[i]][path[i + 1]]
 
-        trip = Trip(list_of_poi=list_of_poi, transit_times=transit_times)
+            temp_route += find_route_single((chosen_pois.list_of_poi[i].poi.latitude, chosen_pois.list_of_poi[i].poi.longitude),
+                                        (chosen_pois.list_of_poi[i+1].poi.latitude, chosen_pois.list_of_poi[i+1].poi.longitude)) 
+        
+        route = [GeoPoint(lat=point[0], lng=point[1]) for idx,point in enumerate(temp_route) if idx % 10 == 0]
+
+        trip = Trip(list_of_poi=list_of_poi, transit_times=transit_times, route=route, starting_time=starting_time)
         trips.append(trip)
 
     recommended_trips = RecommendedTrips(trips=trips)

@@ -23,17 +23,18 @@ class TimedPoi(BaseModel):
 class ListOfTimedPois(BaseModel):
     list_of_poi: List[TimedPoi]
 
+class GeoPoint(BaseModel):
+    lat: float
+    lng: float
 
 class Trip(BaseModel):
     list_of_poi: ListOfTimedPois
     transit_times: List[float]
+    starting_time: List[float]
+    route: List[GeoPoint]
 
 class RecommendedTrips(BaseModel):
     trips: List[Trip]
-
-class GeoPoint(BaseModel):
-    lat: float
-    lng: float
 
 class PlanTripRequest(BaseModel):
     chosen_pois: ListOfTimedPois
