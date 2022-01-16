@@ -1,55 +1,28 @@
-from io import BytesIO, TextIOWrapper
 import re
-from google_images_download import google_images_download
-import sys
-from unicodedata import normalize
+import re
+import dryscrape
+from bs4 import BeautifulSoup
 
 
-def get_photos_from_google(city: str, key: str, num: int = 1):
-    normalized = normalize('NFD', f'"{key}" {city}')
-    key = normalized
+def get_photos_from_bing(city: str, key: str):
+    key = f'"{key}" {city}'
 
-    try:
-        f = open("photos-cache", "r")
-        for line in f:
-            if line.split("\t")[0] == normalized:
-                return line.split("\t")[1]
-        f.close()
-    except:
-        pass
+    key = key.replace("ó", "o").replace("ż", "z").replace("ź", "z").replace(
+        "ś", "s").replace("ć", "c").replace("ą", "a").replace("ę", "e").replace("ł", "l")
 
-    old_stdout = sys.stdout
-    sys.stdout = TextIOWrapper(BytesIO(), sys.stdout.encoding)
+    session = dryscrape.Session()
+    session.visit(
+        f'https://www.bing.com/images/search?q={key}&form=HDRSC2&first=1&tsc=ImageBasicHover')
+    response = session.body()
+    soup = BeautifulSoup(response)
 
-    response = google_images_download.googleimagesdownload()
-
-    arguments = {
-        "keywords": key,
-        "limit": num,
-        "print_urls": True,
-        "no_download": True
-    }
-    paths = response.download(arguments)
-
-    sys.stdout.seek(0)
-    output = sys.stdout.read()
-
-    sys.stdout.close()
-    sys.stdout = old_stdout
-
-    result = []
-    for line in output.split("\n"):
-        if line.startswith("Image URL:"):
-            result.append(line.replace("Image URL: ", ""))
-
-    if result:
-        f = open("photos-cache", "a")
-        f.write(normalized + "\t" + result[0] + "\n")
-        f.close()
-        return result[0]
-
+    for i in soup.find_all("a", {"class": "iusc"}):
+        a = re.search('\"murl\":\"[^\"]+\"', str(i))
+        if a:
+            return a.group(0)[8:-1]
+            break
     return ""
 
 
 if __name__ == "__main__":
-    print(get_photos_from_google("Renesansowy lamus", "Kraków"))
+    print(get_photos_from_bing("Renesansowy lamus", "Kraków"))
