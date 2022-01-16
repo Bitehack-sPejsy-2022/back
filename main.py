@@ -3,6 +3,7 @@ from typing import List, Optional, Dict, Any, Tuple
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
+import time
 
 from mockup_poi import generate_poi
 from models import (
@@ -61,12 +62,14 @@ async def generate_pois(chosen_pois: ListOfPois):
 
 @app.post('/search_near_point', response_model=ListOfPois)
 async def search_near_point(point: GeoPoint):
-
+    START = time.time()
     pois: List[Dict[str, Any]] = user_search(point.lat, point.lng)
+    print("Near point", (time.time() - START))
     return {'list_of_poi': [poi for poi in pois]}
 
 @app.post('/plan_trip', response_model=RecommendedTrips)
 async def plan_trip(plan_trip_request: PlanTripRequest):
+    START = time.time()
     # simplyfying names of arguments from request
     chosen_pois: ListOfTimedPois = plan_trip_request.chosen_pois
     start_time: str = plan_trip_request.start_time
@@ -86,6 +89,9 @@ async def plan_trip(plan_trip_request: PlanTripRequest):
     # nxn matrix where n is number of POIs
     transition_time_matrix: List[List[float]] = get_matrix([(poi_time.poi.longitude, poi_time.poi.latitude) for poi_time in chosen_pois.list_of_poi])
 
+    print("Macierz tranzycji", (time.time() - START))
+    START = time.time()
+
     for chosen_poi in chosen_pois.list_of_poi:
         time_spent_in_pois.append(chosen_poi.time_spent)
         opening_hours.append((chosen_poi.poi.open_hour, chosen_poi.poi.close_hour))
@@ -97,6 +103,9 @@ async def plan_trip(plan_trip_request: PlanTripRequest):
         starting_time: List[float]
         # TODO give deep copies
         path, starting_time = find_path(start_hour, end_hour, time_spent_in_pois, opening_hours, transition_time_matrix)
+
+        print("Find Path", (time.time() - START))
+        START = time.time()
 
         temp_list_of_poi = [chosen_pois.list_of_poi[index] for index in path]
         list_of_poi = ListOfTimedPois(list_of_poi=temp_list_of_poi)
@@ -111,7 +120,10 @@ async def plan_trip(plan_trip_request: PlanTripRequest):
             temp_route += find_route_single((chosen_pois.list_of_poi[i].poi.latitude, chosen_pois.list_of_poi[i].poi.longitude),
                                         (chosen_pois.list_of_poi[i+1].poi.latitude, chosen_pois.list_of_poi[i+1].poi.longitude)) 
         
-        route = [GeoPoint(lat=point[0], lng=point[1]) for idx,point in enumerate(temp_route) if idx % 10 == 0]
+        print("Route", (time.time() - START))
+        START = time.time()
+
+        route = [GeoPoint(lat=point[0], lng=point[1]) for idx,point in enumerate(temp_route) if idx % 1 == 0]
         bounds = (
                 (min([route_point.lat for route_point in route]), min([route_point.lng for route_point in route])),
                 (max([route_point.lat for route_point in route]), max([route_point.lng for route_point in route])),
