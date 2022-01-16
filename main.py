@@ -111,7 +111,7 @@ async def plan_trip(plan_trip_request: PlanTripRequest):
             temp_route += find_route_single((chosen_pois.list_of_poi[i].poi.latitude, chosen_pois.list_of_poi[i].poi.longitude),
                                         (chosen_pois.list_of_poi[i+1].poi.latitude, chosen_pois.list_of_poi[i+1].poi.longitude)) 
         
-        route = [GeoPoint(lat=point[0], lng=point[1]) for point in temp_route]
+        route = [GeoPoint(lat=point[0], lng=point[1]) for idx,point in enumerate(temp_route) if idx % 10 == 0]
 
         trip = Trip(list_of_poi=list_of_poi, transit_times=transit_times, route=route, starting_time=starting_time)
         trips.append(trip)
