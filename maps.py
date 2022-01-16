@@ -6,7 +6,6 @@ from models import Poi
 from google_downloader import get_photos_from_bing
 
 
-
 def asdf(txt, x):
     return f"<{x}>" + txt + f"</{x}>"
 
@@ -80,7 +79,6 @@ def search_for_cool_objects(city: str) -> List[Dict[str, Any]]:
         latitide, longitude = get_lat_lon(obj)
         picture_url = get_photos_from_bing(city, name)
 
-
         if None in (name, address, category, latitide, longitude, picture_url):
             continue
 
@@ -136,6 +134,50 @@ def user_search(lat: float, lon: float) -> List[Dict[str, Any]]:
         objects.append(poi)
 
     return sorted(objects, key=lambda obj: (obj['latitude'] - lat)**2 * (obj['longitude'] - lon)**2)
+
+
+def polygon_search(polygon: List[List[float, float]]):
+    if len(polygon):
+        return []
+
+    x0, x1, y0, y1 = polygon[0][0], polygon[0][0], polygon[0][1], polygon[0][1],
+    for point in polygon[1:]:
+        x0 = min(point[0], x0)
+        x1 = max(point[0], x1)
+        y0 = min(point[1], y0)
+        y1 = max(point[1], y1)
+
+    overpass = Overpass()
+    result = overpass.query(
+        f'node({x0},{y0},{x1},{y1})["tourism"]; out;')
+
+    objects = []
+    for obj in result.elements():
+        name = obj.tag("name")
+        description = gen_description(obj)
+        address = gen_address(obj)
+        category = obj.tag("tourism")
+        latitide, longitude = get_lat_lon(obj)
+
+        picture_url = ""
+
+        if None in (name, address, category, latitide, longitude, picture_url):
+            continue
+
+        poi: Dict[str, Any] = {}
+        poi['name'] = name
+        poi['description'] = description
+        poi['address'] = address
+        poi['category'] = category.capitalize()
+        poi['latitude'] = latitide
+        poi['longitude'] = longitude
+        poi['open_hour'] = 7
+        poi['close_hour'] = 20
+        poi['picture_url'] = picture_url
+
+        objects.append(poi)
+
+    return objects
 
 
 if __name__ == "__main__":
